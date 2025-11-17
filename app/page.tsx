@@ -301,9 +301,10 @@ export default function Home() {
           if (category.id === "global-settings") return;
           category.settings.forEach(setting => {
             const key = `${category.id}-${setting.name}`;
+            const isRequired = !!(setting as any).required;
             if (!updated[key]) {
               updated[key] = {
-                email: !(emailPreference === "required" && !setting.required),
+                email: !(emailPreference === "required" && !isRequired),
                 inProduct: false,
               };
             } else {
@@ -333,12 +334,13 @@ export default function Home() {
           if (category.id === "global-settings") return;
           category.settings.forEach(setting => {
             const key = `${category.id}-${setting.name}`;
+            const isRequired = !!(setting as any).required;
             if (!updated[key]) {
               updated[key] = {
-                email: !(emailPreference === "required" && !setting.required),
+                email: !(emailPreference === "required" && !isRequired),
                 inProduct: inProductPreference !== "never",
               };
-            } else if (!setting.required) {
+            } else if (!isRequired) {
               updated[key].email = false;
             }
           });
