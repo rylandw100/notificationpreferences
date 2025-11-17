@@ -591,7 +591,7 @@ export default function Home() {
                                         categoryId: category.id,
                                         settingId: setting.name,
                                         settingName: setting.name,
-                                        isRequired: !!setting.required,
+                                        isRequired: !!(setting as any).required,
                                       });
                                       setDrawerOpen(true);
                                     }
