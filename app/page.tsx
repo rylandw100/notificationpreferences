@@ -611,7 +611,7 @@ export default function Home() {
                                         Required
                                       </span>
                                     )}
-                                    {setting.isGlobalSetting ? (
+                                    {!!(setting as any).isGlobalSetting ? (
                                       <Select 
                                         value={setting.name === "Email" ? emailPreference : inProductPreference}
                                         onValueChange={(value) => {
