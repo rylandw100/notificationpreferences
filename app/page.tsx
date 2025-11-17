@@ -325,7 +325,8 @@ export default function Home() {
           const category = baseCategories.find(c => c.id === categoryId);
           const setting = category?.settings.find(s => s.name === settingName);
           // Don't disable email for required items
-          if (!setting?.required) {
+          const isRequired = !!(setting as any)?.required;
+          if (!isRequired) {
             updated[key] = { ...updated[key], email: false };
           }
         });
