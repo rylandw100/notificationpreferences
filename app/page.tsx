@@ -606,7 +606,7 @@ export default function Home() {
                                     </span>
                                   </div>
                                   <div className="flex items-center gap-3">
-                                    {setting.required && (
+                                    {!!(setting as any).required && (
                                       <span className="px-2 py-1 text-[12px] font-medium text-[#6f6f72] bg-[#e0dede] rounded">
                                         Required
                                       </span>
