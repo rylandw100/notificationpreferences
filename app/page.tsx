@@ -278,10 +278,11 @@ export default function Home() {
   const notificationCategories = baseCategories.map((category) => ({
     ...category,
     settings: category.settings.map((setting) => {
-      const channels = category.enabled ? setting.channels : (setting.required ? "Email" : setting.channels);
+      const isRequired = !!(setting as any).required;
+      const channels = category.enabled ? setting.channels : (isRequired ? "Email" : setting.channels);
       return {
         ...setting,
-        filteredChannels: getFilteredChannels(channels, !!setting.required, category.id, setting.name),
+        filteredChannels: getFilteredChannels(channels, isRequired, category.id, setting.name),
       };
     }),
   }));
