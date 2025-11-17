@@ -580,7 +580,7 @@ export default function Home() {
                           {/* Settings List */}
                           <div className="flex flex-col">
                             {category.settings
-                              .filter((setting) => category.enabled || setting.required)
+                              .filter((setting) => category.enabled || !!(setting as any).required)
                               .map((setting, index) => (
                                 <div
                                   key={index}
