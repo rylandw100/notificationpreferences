@@ -243,17 +243,19 @@ export default function Home() {
         const currentEnabled = prev[category.id as keyof typeof prev] ?? true;
         
         // Check all settings, including those that are filtered out when disabled
-        const visibleSettings = category.settings.filter((setting) => currentEnabled || setting.required);
+        const visibleSettings = category.settings.filter((setting) => currentEnabled || (setting as any).required);
         
         const allOff = visibleSettings.every((setting) => {
-          const channels = currentEnabled ? setting.channels : (setting.required ? "Email" : setting.channels);
-          const filtered = getFilteredChannels(channels, !!setting.required, category.id, setting.name);
+          const isRequired = !!(setting as any).required;
+          const channels = currentEnabled ? setting.channels : (isRequired ? "Email" : setting.channels);
+          const filtered = getFilteredChannels(channels, isRequired, category.id, setting.name);
           return filtered === "Off";
         });
 
         const hasAnyChannels = visibleSettings.some((setting) => {
-          const channels = currentEnabled ? setting.channels : (setting.required ? "Email" : setting.channels);
-          const filtered = getFilteredChannels(channels, !!setting.required, category.id, setting.name);
+          const isRequired = !!(setting as any).required;
+          const channels = currentEnabled ? setting.channels : (isRequired ? "Email" : setting.channels);
+          const filtered = getFilteredChannels(channels, isRequired, category.id, setting.name);
           return filtered !== "Off";
         });
 
