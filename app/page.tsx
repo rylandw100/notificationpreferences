@@ -253,16 +253,26 @@ export default function Home() {
         
         const allOff = visibleSettings.every((setting) => {
           const isRequired = !!(setting as any).required;
-          const channels = currentEnabled ? setting.channels : (isRequired ? "Email" : setting.channels);
+          // For required items, always use original channels to preserve individual settings
+          const channels = isRequired ? setting.channels : (currentEnabled ? setting.channels : setting.channels);
           const filtered = getFilteredChannels(channels, isRequired, category.id, setting.name);
-          return filtered === "Off";
+          // When category is disabled and item is required, only check if Email is enabled
+          const displayChannels = !currentEnabled && isRequired 
+            ? (filtered.includes("Email") ? "Email" : "Off")
+            : filtered;
+          return displayChannels === "Off";
         });
 
         const hasAnyChannels = visibleSettings.some((setting) => {
           const isRequired = !!(setting as any).required;
-          const channels = currentEnabled ? setting.channels : (isRequired ? "Email" : setting.channels);
+          // For required items, always use original channels to preserve individual settings
+          const channels = isRequired ? setting.channels : (currentEnabled ? setting.channels : setting.channels);
           const filtered = getFilteredChannels(channels, isRequired, category.id, setting.name);
-          return filtered !== "Off";
+          // When category is disabled and item is required, only check if Email is enabled
+          const displayChannels = !currentEnabled && isRequired 
+            ? (filtered.includes("Email") ? "Email" : "Off")
+            : filtered;
+          return displayChannels !== "Off";
         });
 
         // Auto-disable if all visible settings are off
