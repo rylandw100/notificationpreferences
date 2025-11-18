@@ -285,10 +285,18 @@ export default function Home() {
     ...category,
     settings: category.settings.map((setting) => {
       const isRequired = !!(setting as any).required;
-      const channels = category.enabled ? setting.channels : (isRequired ? "Email" : setting.channels);
+      // For required items, always use original channels so individual settings are preserved
+      // For non-required items, when category is disabled, they're hidden anyway
+      const channels = isRequired ? setting.channels : (category.enabled ? setting.channels : setting.channels);
+      const filtered = getFilteredChannels(channels, isRequired, category.id, setting.name);
+      // When category is disabled and item is required, only show Email if it's enabled in individual settings
+      // This preserves the individual channel settings even when category is toggled off
+      const displayChannels = !category.enabled && isRequired 
+        ? (filtered.includes("Email") ? "Email" : "Off")
+        : filtered;
       return {
         ...setting,
-        filteredChannels: getFilteredChannels(channels, isRequired, category.id, setting.name),
+        filteredChannels: displayChannels,
       };
     }),
   }));
