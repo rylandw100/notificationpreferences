@@ -709,12 +709,9 @@ export default function Home() {
 
       {/* Drawer */}
       <Drawer open={drawerOpen} onOpenChange={setDrawerOpen} direction="right">
-        <DrawerContent className="h-screen max-h-screen !w-3/4 !sm:max-w-2xl">
+        <DrawerContent className="h-screen max-h-screen !w-3/4 !sm:max-w-4xl">
           <DrawerHeader>
-            <div className="flex items-center justify-between">
-              <DrawerTitle className="text-[24px] font-medium leading-[32px] text-black">
-                {selectedCategory?.settingName}
-              </DrawerTitle>
+            <div className="flex items-center gap-4">
               {selectedCategory && (() => {
                 const key = `${selectedCategory.categoryId}-${selectedCategory.settingId}`;
                 const settings = categoryChannelSettings[key];
@@ -744,21 +741,16 @@ export default function Home() {
                   />
                 );
               })()}
+              <DrawerTitle className="text-[24px] font-medium leading-[32px] text-black">
+                {selectedCategory?.settingName}
+              </DrawerTitle>
             </div>
           </DrawerHeader>
           <div className="px-4 pb-4 overflow-y-auto flex-1">
             <div className="bg-white rounded-2xl p-6 w-full">
               <div className="flex flex-col gap-6">
                 {/* Email Setting */}
-                <div className="flex items-center justify-between py-3 px-0">
-                  <div className="flex flex-col">
-                    <span className="text-[16px] font-medium leading-6 text-[#202022] tracking-normal">
-                      Email
-                    </span>
-                    <span className="text-[12px] leading-4 text-[#6f6f72] mt-1 tracking-normal">
-                      Sent to your email address
-                    </span>
-                  </div>
+                <div className="flex items-center gap-4 py-3 px-0">
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -806,21 +798,21 @@ export default function Home() {
                       )}
                     </Tooltip>
                   </TooltipProvider>
+                  <div className="flex flex-col">
+                    <span className="text-[16px] font-medium leading-6 text-[#202022] tracking-normal">
+                      Email
+                    </span>
+                    <span className="text-[12px] leading-4 text-[#6f6f72] mt-1 tracking-normal">
+                      Sent to your email address
+                    </span>
+                  </div>
                 </div>
 
                 {/* Divider */}
                 <div className="border-b border-[#ebe8e4]"></div>
 
                 {/* In-product Notifications Setting */}
-                <div className="flex items-center justify-between py-3 px-0">
-                  <div className="flex flex-col">
-                    <span className="text-[16px] font-medium leading-6 text-[#202022] tracking-normal">
-                      In-product notifications
-                    </span>
-                    <span className="text-[12px] leading-4 text-[#6f6f72] mt-1 tracking-normal">
-                      Delivered in the Notification Center, and will appear as a red badge on the bell icon, both on the web and mobile apps of Rippling
-                    </span>
-                  </div>
+                <div className="flex items-center gap-4 py-3 px-0">
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -865,6 +857,14 @@ export default function Home() {
                       )}
                     </Tooltip>
                   </TooltipProvider>
+                  <div className="flex flex-col">
+                    <span className="text-[16px] font-medium leading-6 text-[#202022] tracking-normal">
+                      In-product notifications
+                    </span>
+                    <span className="text-[12px] leading-4 text-[#6f6f72] mt-1 tracking-normal">
+                      Delivered in the Notification Center, and will appear as a red badge on the bell icon, both on the web and mobile apps of Rippling
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
