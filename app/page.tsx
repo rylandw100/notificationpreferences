@@ -709,11 +709,42 @@ export default function Home() {
 
       {/* Drawer */}
       <Drawer open={drawerOpen} onOpenChange={setDrawerOpen} direction="right">
-        <DrawerContent className="h-screen max-h-screen">
+        <DrawerContent className="h-screen max-h-screen !w-3/4 !sm:max-w-2xl">
           <DrawerHeader>
-            <DrawerTitle className="text-[24px] font-medium leading-[32px] text-black">
-              {selectedCategory?.settingName}
-            </DrawerTitle>
+            <div className="flex items-center justify-between">
+              <DrawerTitle className="text-[24px] font-medium leading-[32px] text-black">
+                {selectedCategory?.settingName}
+              </DrawerTitle>
+              {selectedCategory && (() => {
+                const key = `${selectedCategory.categoryId}-${selectedCategory.settingId}`;
+                const settings = categoryChannelSettings[key];
+                const emailEnabled = settings?.email ?? !(emailPreference === "required" && !selectedCategory.isRequired);
+                const inProductEnabled = settings?.inProduct ?? (inProductPreference !== "never");
+                // Title toggle is ON if at least one channel is ON
+                const titleToggleEnabled = emailEnabled || inProductEnabled;
+                return (
+                  <Switch
+                    checked={titleToggleEnabled}
+                    onCheckedChange={(checked) => {
+                      if (selectedCategory) {
+                        const key = `${selectedCategory.categoryId}-${selectedCategory.settingId}`;
+                        setCategoryChannelSettings(prev => ({
+                          ...prev,
+                          [key]: {
+                            email: checked && !(emailPreference === "required" && !selectedCategory.isRequired),
+                            inProduct: checked && inProductPreference !== "never",
+                          },
+                        }));
+                      }
+                    }}
+                    disabled={
+                      (emailPreference === "required" && !selectedCategory.isRequired) &&
+                      inProductPreference === "never"
+                    }
+                  />
+                );
+              })()}
+            </div>
           </DrawerHeader>
           <div className="px-4 pb-4 overflow-y-auto flex-1">
             <div className="bg-white rounded-2xl p-6 w-full">
@@ -747,14 +778,18 @@ export default function Home() {
                             onCheckedChange={(checked) => {
                               if (selectedCategory) {
                                 const key = `${selectedCategory.categoryId}-${selectedCategory.settingId}`;
-                                setCategoryChannelSettings(prev => ({
-                                  ...prev,
-                                  [key]: {
-                                    ...prev[key],
-                                    email: checked,
-                                    inProduct: prev[key]?.inProduct ?? (inProductPreference !== "never"),
-                                  },
-                                }));
+                                setCategoryChannelSettings(prev => {
+                                  const newSettings = {
+                                    ...prev,
+                                    [key]: {
+                                      ...prev[key],
+                                      email: checked,
+                                      inProduct: prev[key]?.inProduct ?? (inProductPreference !== "never"),
+                                    },
+                                  };
+                                  // If all channels are off, title toggle should be off (handled by allChannelsEnabled calculation)
+                                  return newSettings;
+                                });
                               }
                             }}
                             disabled={
@@ -772,6 +807,9 @@ export default function Home() {
                     </Tooltip>
                   </TooltipProvider>
                 </div>
+
+                {/* Divider */}
+                <div className="border-b border-[#ebe8e4]"></div>
 
                 {/* In-product Notifications Setting */}
                 <div className="flex items-center justify-between py-3 px-0">
@@ -802,14 +840,18 @@ export default function Home() {
                             onCheckedChange={(checked) => {
                               if (selectedCategory) {
                                 const key = `${selectedCategory.categoryId}-${selectedCategory.settingId}`;
-                                setCategoryChannelSettings(prev => ({
-                                  ...prev,
-                                  [key]: {
-                                    ...prev[key],
-                                    inProduct: checked,
-                                    email: prev[key]?.email ?? (!(emailPreference === "required" && !selectedCategory.isRequired)),
-                                  },
-                                }));
+                                setCategoryChannelSettings(prev => {
+                                  const newSettings = {
+                                    ...prev,
+                                    [key]: {
+                                      ...prev[key],
+                                      inProduct: checked,
+                                      email: prev[key]?.email ?? (!(emailPreference === "required" && !selectedCategory.isRequired)),
+                                    },
+                                  };
+                                  // If all channels are off, title toggle should be off (handled by allChannelsEnabled calculation)
+                                  return newSettings;
+                                });
                               }
                             }}
                             disabled={inProductPreference === "never"}
