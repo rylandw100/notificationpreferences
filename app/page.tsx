@@ -293,6 +293,11 @@ export default function Home() {
     }),
   }));
 
+  // Calculate master toggle state (only for pages with more than 1 card)
+  const hasMultipleCards = notificationCategories.length > 1 && activeApp !== "Global settings";
+  const allCardsEnabled = hasMultipleCards && notificationCategories.every(cat => cat.enabled);
+  const anyCardEnabled = hasMultipleCards && notificationCategories.some(cat => cat.enabled);
+
   // Sync individual category settings with global preferences
   useEffect(() => {
     if (inProductPreference === "never") {
@@ -555,6 +560,32 @@ export default function Home() {
 
                     {/* Main Content Cards */}
                     <div className="flex-1 flex flex-col gap-6 mt-8 pr-[54px] mb-[54px]">
+                      {/* Master Toggle - Only show if more than 1 card */}
+                      {hasMultipleCards && (
+                        <div className="bg-white border border-[#e0dede] rounded-2xl p-6 w-full max-w-full">
+                          <div className="flex items-center gap-2">
+                            <Switch 
+                              checked={allCardsEnabled}
+                              onCheckedChange={(checked) => {
+                                // Update all card toggles
+                                const updates: Record<string, boolean> = {};
+                                notificationCategories.forEach(category => {
+                                  if (!category.id.includes("global-settings")) {
+                                    updates[category.id] = checked;
+                                  }
+                                });
+                                setCategoryStates(prev => ({
+                                  ...prev,
+                                  ...updates
+                                }));
+                              }}
+                            />
+                            <h2 className="text-[22px] font-medium leading-[26px] text-black tracking-normal">
+                              {activeApp} notifications
+                            </h2>
+                          </div>
+                        </div>
+                      )}
                       {notificationCategories.map((category) => (
                         <div
                           key={category.id}
@@ -571,6 +602,10 @@ export default function Home() {
                                       ...prev,
                                       [category.id]: checked
                                     }));
+                                    // If turning on a card and master toggle exists, ensure master toggle is on
+                                    if (checked && hasMultipleCards && !allCardsEnabled) {
+                                      // Master toggle will update automatically via allCardsEnabled calculation
+                                    }
                                   }}
                                 />
                               )}
