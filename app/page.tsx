@@ -21,6 +21,12 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   Home as HomeIcon,
   FileText,
   User,
@@ -684,33 +690,49 @@ export default function Home() {
                       Sent to your email address
                     </span>
                   </div>
-                  <Switch
-                    checked={
-                      selectedCategory
-                        ? (() => {
-                            const key = `${selectedCategory.categoryId}-${selectedCategory.settingId}`;
-                            const settings = categoryChannelSettings[key];
-                            if (settings) return settings.email;
-                            // Default: on unless global setting is "required" and not required
-                            return !(emailPreference === "required" && !selectedCategory.isRequired);
-                          })()
-                        : true
-                    }
-                    onCheckedChange={(checked) => {
-                      if (selectedCategory) {
-                        const key = `${selectedCategory.categoryId}-${selectedCategory.settingId}`;
-                        setCategoryChannelSettings(prev => ({
-                          ...prev,
-                          [key]: {
-                            ...prev[key],
-                            email: checked,
-                            inProduct: prev[key]?.inProduct ?? (inProductPreference !== "never"),
-                          },
-                        }));
-                      }
-                    }}
-                    disabled={selectedCategory?.isRequired || false}
-                  />
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div>
+                          <Switch
+                            checked={
+                              selectedCategory
+                                ? (() => {
+                                    const key = `${selectedCategory.categoryId}-${selectedCategory.settingId}`;
+                                    const settings = categoryChannelSettings[key];
+                                    if (settings) return settings.email;
+                                    // Default: on unless global setting is "required" and not required
+                                    return !(emailPreference === "required" && !selectedCategory.isRequired);
+                                  })()
+                                : true
+                            }
+                            onCheckedChange={(checked) => {
+                              if (selectedCategory) {
+                                const key = `${selectedCategory.categoryId}-${selectedCategory.settingId}`;
+                                setCategoryChannelSettings(prev => ({
+                                  ...prev,
+                                  [key]: {
+                                    ...prev[key],
+                                    email: checked,
+                                    inProduct: prev[key]?.inProduct ?? (inProductPreference !== "never"),
+                                  },
+                                }));
+                              }
+                            }}
+                            disabled={
+                              selectedCategory?.isRequired || 
+                              (emailPreference === "required" && !selectedCategory?.isRequired)
+                            }
+                          />
+                        </div>
+                      </TooltipTrigger>
+                      {(emailPreference === "required" && !selectedCategory?.isRequired) && (
+                        <TooltipContent>
+                          <p>Adjust global settings to enable this channel</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
 
                 {/* In-product Notifications Setting */}
@@ -723,32 +745,46 @@ export default function Home() {
                       Delivered in the Notification Center, and will appear as a red badge on the bell icon, both on the web and mobile apps of Rippling
                     </span>
                   </div>
-                  <Switch
-                    checked={
-                      selectedCategory
-                        ? (() => {
-                            const key = `${selectedCategory.categoryId}-${selectedCategory.settingId}`;
-                            const settings = categoryChannelSettings[key];
-                            if (settings) return settings.inProduct;
-                            // Default: on unless global setting is "never"
-                            return inProductPreference !== "never";
-                          })()
-                        : true
-                    }
-                    onCheckedChange={(checked) => {
-                      if (selectedCategory) {
-                        const key = `${selectedCategory.categoryId}-${selectedCategory.settingId}`;
-                        setCategoryChannelSettings(prev => ({
-                          ...prev,
-                          [key]: {
-                            ...prev[key],
-                            inProduct: checked,
-                            email: prev[key]?.email ?? (!(emailPreference === "required" && !selectedCategory.isRequired)),
-                          },
-                        }));
-                      }
-                    }}
-                  />
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div>
+                          <Switch
+                            checked={
+                              selectedCategory
+                                ? (() => {
+                                    const key = `${selectedCategory.categoryId}-${selectedCategory.settingId}`;
+                                    const settings = categoryChannelSettings[key];
+                                    if (settings) return settings.inProduct;
+                                    // Default: on unless global setting is "never"
+                                    return inProductPreference !== "never";
+                                  })()
+                                : true
+                            }
+                            onCheckedChange={(checked) => {
+                              if (selectedCategory) {
+                                const key = `${selectedCategory.categoryId}-${selectedCategory.settingId}`;
+                                setCategoryChannelSettings(prev => ({
+                                  ...prev,
+                                  [key]: {
+                                    ...prev[key],
+                                    inProduct: checked,
+                                    email: prev[key]?.email ?? (!(emailPreference === "required" && !selectedCategory.isRequired)),
+                                  },
+                                }));
+                              }
+                            }}
+                            disabled={inProductPreference === "never"}
+                          />
+                        </div>
+                      </TooltipTrigger>
+                      {inProductPreference === "never" && (
+                        <TooltipContent>
+                          <p>Adjust global settings to enable this channel</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               </div>
             </div>
