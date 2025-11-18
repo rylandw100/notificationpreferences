@@ -297,6 +297,8 @@ export default function Home() {
   const hasMultipleCards = notificationCategories.length > 1 && activeApp !== "Global settings";
   const allCardsEnabled = hasMultipleCards && notificationCategories.every(cat => cat.enabled);
   const anyCardEnabled = hasMultipleCards && notificationCategories.some(cat => cat.enabled);
+  // Master toggle is ON if at least one card is ON
+  const masterToggleEnabled = hasMultipleCards ? anyCardEnabled : false;
 
   // Sync individual category settings with global preferences
   useEffect(() => {
@@ -565,7 +567,7 @@ export default function Home() {
                         <div className="bg-white border border-[#e0dede] rounded-2xl p-6 w-full max-w-full">
                           <div className="flex items-center gap-2">
                             <Switch 
-                              checked={allCardsEnabled}
+                              checked={masterToggleEnabled}
                               onCheckedChange={(checked) => {
                                 // Update all card toggles
                                 const updates: Record<string, boolean> = {};
@@ -602,9 +604,10 @@ export default function Home() {
                                       ...prev,
                                       [category.id]: checked
                                     }));
-                                    // If turning on a card and master toggle exists, ensure master toggle is on
-                                    if (checked && hasMultipleCards && !allCardsEnabled) {
-                                      // Master toggle will update automatically via allCardsEnabled calculation
+                                    // If turning on a card and master toggle exists and was off, turn master toggle on
+                                    if (checked && hasMultipleCards && !masterToggleEnabled) {
+                                      // Master toggle will update automatically via masterToggleEnabled calculation
+                                      // which is based on anyCardEnabled, so it will turn on when this card turns on
                                     }
                                   }}
                                 />
