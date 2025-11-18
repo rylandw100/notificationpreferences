@@ -202,12 +202,12 @@ export default function Home() {
     return [];
   };
 
-  const getFilteredChannels = (channels: string, isRequired: boolean, categoryId?: string, settingId?: string) => {
+  const getFilteredChannels = (channels: string, isRequired: boolean, categoryId?: string, settingId?: string, categoryEnabled?: boolean) => {
     let filtered = channels;
     const settingKey = categoryId && settingId ? `${categoryId}-${settingId}` : null;
     const individualSettings = settingKey ? categoryChannelSettings[settingKey] : null;
     
-    // Filter based on individual category settings first
+    // Filter based on individual category settings first (always check these, regardless of category state)
     if (individualSettings) {
       if (!individualSettings.email) {
         filtered = filtered.replace(/Email,?\s*/g, "").trim();
@@ -255,7 +255,7 @@ export default function Home() {
           const isRequired = !!(setting as any).required;
           // For required items, always use original channels to preserve individual settings
           const channels = isRequired ? setting.channels : (currentEnabled ? setting.channels : setting.channels);
-          const filtered = getFilteredChannels(channels, isRequired, category.id, setting.name);
+          const filtered = getFilteredChannels(channels, isRequired, category.id, setting.name, currentEnabled);
           // When category is disabled and item is required, only check if Email is enabled
           const displayChannels = !currentEnabled && isRequired 
             ? (filtered.includes("Email") ? "Email" : "Off")
@@ -267,7 +267,7 @@ export default function Home() {
           const isRequired = !!(setting as any).required;
           // For required items, always use original channels to preserve individual settings
           const channels = isRequired ? setting.channels : (currentEnabled ? setting.channels : setting.channels);
-          const filtered = getFilteredChannels(channels, isRequired, category.id, setting.name);
+          const filtered = getFilteredChannels(channels, isRequired, category.id, setting.name, currentEnabled);
           // When category is disabled and item is required, only check if Email is enabled
           const displayChannels = !currentEnabled && isRequired 
             ? (filtered.includes("Email") ? "Email" : "Off")
@@ -298,9 +298,9 @@ export default function Home() {
       // For required items, always use original channels so individual settings are preserved
       // For non-required items, when category is disabled, they're hidden anyway
       const channels = isRequired ? setting.channels : (category.enabled ? setting.channels : setting.channels);
-      const filtered = getFilteredChannels(channels, isRequired, category.id, setting.name);
-      // When category is disabled and item is required, only show Email if it's enabled in individual settings
-      // This preserves the individual channel settings even when category is toggled off
+      const filtered = getFilteredChannels(channels, isRequired, category.id, setting.name, category.enabled);
+      // When category is disabled and item is required, only show Email if it's enabled
+      // Individual settings are already applied in getFilteredChannels, so this just formats the display
       const displayChannels = !category.enabled && isRequired 
         ? (filtered.includes("Email") ? "Email" : "Off")
         : filtered;
@@ -765,7 +765,7 @@ export default function Home() {
             </div>
           </DrawerHeader>
           <div className="px-4 pb-4 overflow-y-auto flex-1">
-            <div className="bg-white rounded-2xl p-6 w-full">
+            <div className="bg-white rounded-2xl w-full">
               <div className="flex flex-col gap-6">
                 {/* Email Setting */}
                 <div className="flex items-center gap-4 py-3 px-0">
