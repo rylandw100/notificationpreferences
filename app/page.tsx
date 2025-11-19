@@ -275,8 +275,16 @@ export default function Home() {
           return displayChannels !== "Off";
         });
 
-        // Auto-disable if all visible settings are off
-        if (allOff && currentEnabled && visibleSettings.length > 0) {
+        // Check if category has required settings - if so, always keep it enabled
+        const hasRequired = category.settings.some(setting => !!(setting as any).required);
+        
+        // Force enable if has required and currently disabled
+        if (hasRequired && !currentEnabled) {
+          updates[category.id] = true;
+          hasUpdates = true;
+        }
+        // Auto-disable if all visible settings are off (but never disable if has required)
+        else if (allOff && currentEnabled && visibleSettings.length > 0 && !hasRequired) {
           updates[category.id] = false;
           hasUpdates = true;
         }
@@ -317,6 +325,15 @@ export default function Home() {
   const anyCardEnabled = hasMultipleCards && notificationCategories.some(cat => cat.enabled);
   // Master toggle is ON if at least one card is ON
   const masterToggleEnabled = hasMultipleCards ? anyCardEnabled : false;
+  
+  // Check if any category has required settings (for page level toggle)
+  const hasRequiredInPage = notificationCategories.some(category => 
+    category.settings.some(setting => !!(setting as any).required)
+  );
+  
+  // Helper to check if a category has required settings
+  const categoryHasRequired = (category: typeof notificationCategories[0]) => 
+    category.settings.some(setting => !!(setting as any).required);
 
   // Sync individual category settings with global preferences
   useEffect(() => {
@@ -584,22 +601,37 @@ export default function Home() {
                       {hasMultipleCards && (
                         <div className="bg-white border border-[#e0dede] rounded-2xl p-6 w-full max-w-full">
                           <div className="flex items-center gap-2">
-                            <Switch 
-                              checked={masterToggleEnabled}
-                              onCheckedChange={(checked) => {
-                                // Update all card toggles
-                                const updates: Record<string, boolean> = {};
-                                notificationCategories.forEach(category => {
-                                  if (!category.id.includes("global-settings")) {
-                                    updates[category.id] = checked;
-                                  }
-                                });
-                                setCategoryStates(prev => ({
-                                  ...prev,
-                                  ...updates
-                                }));
-                              }}
-                            />
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div>
+                                    <Switch 
+                                      checked={masterToggleEnabled || hasRequiredInPage}
+                                      onCheckedChange={(checked) => {
+                                        if (hasRequiredInPage) return; // Prevent toggling if required
+                                        // Update all card toggles
+                                        const updates: Record<string, boolean> = {};
+                                        notificationCategories.forEach(category => {
+                                          if (!category.id.includes("global-settings")) {
+                                            updates[category.id] = checked;
+                                          }
+                                        });
+                                        setCategoryStates(prev => ({
+                                          ...prev,
+                                          ...updates
+                                        }));
+                                      }}
+                                      disabled={hasRequiredInPage}
+                                    />
+                                  </div>
+                                </TooltipTrigger>
+                                {hasRequiredInPage && (
+                                  <TooltipContent>
+                                    <p>Some notifications are required</p>
+                                  </TooltipContent>
+                                )}
+                              </Tooltip>
+                            </TooltipProvider>
                             <h2 className="text-[22px] font-medium leading-[26px] text-black tracking-normal">
                               {activeApp} notifications
                             </h2>
@@ -615,20 +647,35 @@ export default function Home() {
                           <div className={category.enabled ? "mb-6" : "mb-0"}>
                             <div className="flex items-center gap-2 mb-2">
                               {!category.id.includes("global-settings") && (
-                                <Switch 
-                                  checked={category.enabled}
-                                  onCheckedChange={(checked) => {
-                                    setCategoryStates(prev => ({
-                                      ...prev,
-                                      [category.id]: checked
-                                    }));
-                                    // If turning on a card and master toggle exists and was off, turn master toggle on
-                                    if (checked && hasMultipleCards && !masterToggleEnabled) {
-                                      // Master toggle will update automatically via masterToggleEnabled calculation
-                                      // which is based on anyCardEnabled, so it will turn on when this card turns on
-                                    }
-                                  }}
-                                />
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <div>
+                                        <Switch 
+                                          checked={category.enabled || categoryHasRequired(category)}
+                                          onCheckedChange={(checked) => {
+                                            if (categoryHasRequired(category)) return; // Prevent toggling if required
+                                            setCategoryStates(prev => ({
+                                              ...prev,
+                                              [category.id]: checked
+                                            }));
+                                            // If turning on a card and master toggle exists and was off, turn master toggle on
+                                            if (checked && hasMultipleCards && !masterToggleEnabled) {
+                                              // Master toggle will update automatically via masterToggleEnabled calculation
+                                              // which is based on anyCardEnabled, so it will turn on when this card turns on
+                                            }
+                                          }}
+                                          disabled={categoryHasRequired(category)}
+                                        />
+                                      </div>
+                                    </TooltipTrigger>
+                                    {categoryHasRequired(category) && (
+                                      <TooltipContent>
+                                        <p>Some notifications are required</p>
+                                      </TooltipContent>
+                                    )}
+                                  </Tooltip>
+                                </TooltipProvider>
                               )}
                               <h2 className="text-[22px] font-medium leading-[26px] text-black tracking-normal">
                                 {category.title}
@@ -737,26 +784,39 @@ export default function Home() {
                 const inProductEnabled = settings?.inProduct ?? (inProductPreference !== "never");
                 // Title toggle is ON if at least one channel is ON
                 const titleToggleEnabled = emailEnabled || inProductEnabled;
+                const isRequired = selectedCategory.isRequired;
+                const isDisabled = isRequired || ((emailPreference === "required" && !selectedCategory.isRequired) && inProductPreference === "never");
                 return (
-                  <Switch
-                    checked={titleToggleEnabled}
-                    onCheckedChange={(checked) => {
-                      if (selectedCategory) {
-                        const key = `${selectedCategory.categoryId}-${selectedCategory.settingId}`;
-                        setCategoryChannelSettings(prev => ({
-                          ...prev,
-                          [key]: {
-                            email: checked && !(emailPreference === "required" && !selectedCategory.isRequired),
-                            inProduct: checked && inProductPreference !== "never",
-                          },
-                        }));
-                      }
-                    }}
-                    disabled={
-                      (emailPreference === "required" && !selectedCategory.isRequired) &&
-                      inProductPreference === "never"
-                    }
-                  />
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div>
+                          <Switch
+                            checked={titleToggleEnabled || isRequired}
+                            onCheckedChange={(checked) => {
+                              if (isRequired) return; // Prevent toggling if required
+                              if (selectedCategory) {
+                                const key = `${selectedCategory.categoryId}-${selectedCategory.settingId}`;
+                                setCategoryChannelSettings(prev => ({
+                                  ...prev,
+                                  [key]: {
+                                    email: checked && !(emailPreference === "required" && !selectedCategory.isRequired),
+                                    inProduct: checked && inProductPreference !== "never",
+                                  },
+                                }));
+                              }
+                            }}
+                            disabled={isDisabled}
+                          />
+                        </div>
+                      </TooltipTrigger>
+                      {isRequired && (
+                        <TooltipContent>
+                          <p>Some notifications are required</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </TooltipProvider>
                 );
               })()}
               <DrawerTitle className="text-[24px] font-medium leading-[32px] text-black">
