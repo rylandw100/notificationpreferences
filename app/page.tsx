@@ -372,9 +372,12 @@ export default function Home() {
           const [categoryId, settingName] = key.split("-");
           const category = baseCategories.find(c => c.id === categoryId);
           const setting = category?.settings.find(s => s.name === settingName);
-          // Don't disable email for required items
           const isRequired = !!(setting as any)?.required;
-          if (!isRequired) {
+          if (isRequired) {
+            // Explicitly enable email for required items
+            updated[key] = { ...updated[key], email: true };
+          } else {
+            // Disable email for non-required items
             updated[key] = { ...updated[key], email: false };
           }
         });
@@ -386,11 +389,16 @@ export default function Home() {
             const isRequired = !!(setting as any).required;
             if (!updated[key]) {
               updated[key] = {
-                email: !(emailPreference === "required" && !isRequired),
+                email: isRequired, // true for required, false for non-required
                 inProduct: inProductPreference !== "never",
               };
-            } else if (!isRequired) {
-              updated[key].email = false;
+            } else {
+              // Ensure required items have email enabled
+              if (isRequired) {
+                updated[key].email = true;
+              } else {
+                updated[key].email = false;
+              }
             }
           });
         });
@@ -839,6 +847,10 @@ export default function Home() {
                                 ? (() => {
                                     const key = `${selectedCategory.categoryId}-${selectedCategory.settingId}`;
                                     const settings = categoryChannelSettings[key];
+                                    // For required items when emailPreference is "required", always show as enabled
+                                    if (selectedCategory.isRequired && emailPreference === "required") {
+                                      return true;
+                                    }
                                     if (settings) return settings.email;
                                     // Default: on unless global setting is "required" and not required
                                     return !(emailPreference === "required" && !selectedCategory.isRequired);
