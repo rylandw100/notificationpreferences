@@ -734,18 +734,18 @@ export default function Home() {
                                         <SelectTrigger className="w-[300px] h-9 border border-[#e0dede] bg-white ml-6">
                                           <SelectValue>
                                             {setting.name === "Email" && emailPreference === "required"
-                                              ? "Only send me required notifications"
+                                              ? "Only send required notifications"
                                               : setting.name === "In-product notifications" && inProductPreference === "never"
                                               ? "Never send"
-                                              : "Send the notifications I've opted into"}
+                                              : "Send only the notifications I've chosen"}
                                           </SelectValue>
                                         </SelectTrigger>
                                         <SelectContent>
-                                          <SelectItem value="all">Send the notifications I've opted into</SelectItem>
+                                          <SelectItem value="all">Send only the notifications I've chosen</SelectItem>
                                           {setting.name === "Email" ? (
                                             <SelectItem value="required" className="py-2">
                                               <div className="flex flex-col items-start gap-0.5">
-                                                <span className="text-sm">Only send me required notifications</span>
+                                                <span className="text-sm">Only send required notifications</span>
                                                 <span className="text-xs text-[#6f6f72] font-normal">Some emails are required</span>
                                               </div>
                                             </SelectItem>
